@@ -1,78 +1,73 @@
-# claude-guardrail
+# React + TypeScript + Vite
 
-Template de guardrails para projetos com Claude Code. Garante qualidade e segurança para times iniciantes.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Como usar
+Currently, two official plugins are available:
 
-### 1. Copie os arquivos de guardrail para o seu projeto
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-```bash
-# Clone este repositório
-git clone <url-deste-repo> claude-guardrail
+## React Compiler
 
-# Copie os arquivos para o seu projeto
-cp claude-guardrail/CLAUDE.md seu-projeto/
-cp -r claude-guardrail/.claude seu-projeto/
-```
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-### 2. Verifique que o Node.js está instalado
+## Expanding the ESLint configuration
 
-Os hooks de proteção usam Node.js. Confirme com:
-
-```bash
-node --version
-```
-
-Se não estiver instalado, baixe em [nodejs.org](https://nodejs.org).
-
-### 3. Pronto — abra seu projeto no Claude Code
-
-As proteções são ativadas automaticamente quando você abre o projeto.
-
----
-
-## O que está incluído
-
-### Regras automáticas (`CLAUDE.md`)
-O Claude segue estas regras em toda conversa dentro do projeto:
-- Nunca escreve segredos/credenciais no código
-- Pede confirmação antes de ações destrutivas
-- Aplica práticas de segurança (SQL injection, XSS, etc.)
-
-### Hook de proteção (`.claude/hooks/check-dangerous.js`)
-Bloqueia automaticamente comandos perigosos antes de executar:
-- `rm -rf` / `rmdir /s` / `del /f /s`
-- `git push --force` / `git reset --hard`
-- `DROP TABLE` / `DELETE FROM` sem WHERE / `TRUNCATE`
-
-### Comandos slash (`.claude/commands/`)
-
-| Comando | O que faz |
-|---|---|
-| `/seguranca` | Varre o projeto em busca de segredos expostos e vulnerabilidades |
-| `/pre-deploy` | Checklist completo antes de fazer deploy |
-| `/qualidade` | Revisão de qualidade do código recente |
-
----
-
-## Personalização
-
-### Adaptar o `CLAUDE.md`
-Edite o arquivo `CLAUDE.md` para adicionar regras específicas do seu projeto (stack, padrões de código, endpoints proibidos, etc.).
-
-### Adicionar novos comandos
-Crie arquivos `.md` em `.claude/commands/` com o prompt do comando. Use `$ARGUMENTS` para receber parâmetros:
-
-```markdown
-# .claude/commands/meu-comando.md
-Analise o arquivo $ARGUMENTS e ...
-```
-
-Uso: `/meu-comando src/app.js`
-
-### Adicionar novos padrões perigosos ao hook
-Edite `.claude/hooks/check-dangerous.js` e adicione entradas no array `dangerous`:
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
 ```js
-{ pattern: /seu-padrao/i, msg: 'Mensagem de alerta.' },
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
+
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
